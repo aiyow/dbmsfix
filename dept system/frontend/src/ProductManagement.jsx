@@ -47,7 +47,7 @@ const ProductManagement = () => {
 
     if (!username || !userRole) {
       navigate("/login");
-    } else if (userRole !== "Admin") {
+    } else if (userRole !== "admin") {
       navigate("/staff");
     } else {
       setUser(username);

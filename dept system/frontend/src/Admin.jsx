@@ -27,183 +27,85 @@ const Admin = () => {
 
     if (!username || !userRole) {
       navigate("/login");
-    } else if (userRole !== "Admin") {
+    } else if (userRole.toLowerCase() !== "admin") {
       navigate("/staff");
     } else {
       setUser(username);
       setRole(userRole);
       loadReports();
     }
-
-    const style = document.createElement("style");
-    style.innerHTML = `
-      @media print {
-        body * {
-          visibility: hidden;
-        }
-        .print-area, .print-area * {
-          visibility: visible;
-        }
-        .print-area {
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 100%;
-          padding: 40px;
-          background-color: white;
-        }
-        button {
-          display: none !important;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-  }, [navigate]);
+  }, [navigate]); // ensure useEffect runs properly on mount
 
   const loadReports = async () => {
     try {
-      const [salesData, inventoryData, transactionData] = await Promise.all([
+      const [salesRes, inventoryRes, transactionsRes] = await Promise.all([
         axios.get("http://localhost:5000/api/reports/sales"),
         axios.get("http://localhost:5000/api/reports/inventory"),
         axios.get("http://localhost:5000/api/reports/transactions"),
       ]);
-
-      setSales(salesData.data);
-      setInventory(inventoryData.data);
-      setTransactions(transactionData.data);
-    } catch (err) {
-      console.error("Error loading reports", err);
+      setSales(salesRes.data);
+      setInventory(inventoryRes.data);
+      setTransactions(transactionsRes.data);
+    } catch (error) {
+      console.error("Failed to load reports", error);
     }
   };
 
   const handleLogout = () => {
-    localStorage.clear();
+    localStorage.removeItem("username");
+    localStorage.removeItem("role");
     navigate("/login");
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const renderCard = (title, fields) => (
-    <Card
-      variant="outlined"
-      sx={{
-        mb: 4,
-        borderRadius: 3,
-        boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
-        backgroundColor: "#fff",
-        px: 4,
-        py: 3,
-      }}
-    >
-      <CardContent>
-        <Typography
-          variant="h6"
-          color="primary"
-          gutterBottom
-          sx={{ fontWeight: 700 }}
-        >
-          {title}
-        </Typography>
-        <Divider sx={{ mb: 2 }} />
-        {fields.map(([label, value], idx) => (
-          <Box
-            key={idx}
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              mb: 1.5,
-            }}
-          >
-            <Typography variant="body1" sx={{ color: "#555" }}>
-              {label}
-            </Typography>
-            <Typography variant="body1" fontWeight="bold" sx={{ color: "#111" }}>
-              {value}
-            </Typography>
-          </Box>
-        ))}
-      </CardContent>
-    </Card>
-  );
-
   return (
-    <Box sx={{ backgroundColor: "#f4f6f8", minHeight: "100vh", px: 6, py: 4 }}>
-      <Box className="print-area">
-        <Typography
-          variant="h4"
-          align="center"
-          gutterBottom
-          sx={{ fontWeight: "bold", color: "#333", mb: 2 }}
-        >
-          Welcome, Admin {user}
-        </Typography>
-
-        {/* Product Management Button BELOW Welcome */}
-        <Box display="flex" justifyContent="center" mb={4}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => navigate("/ProductManagement")}
-            sx={{ fontWeight: 600, fontSize: "1rem", px: 4, py: 1 }}
-          >
-            Go to Product Management
-          </Button>
-        </Box>
-
-        <Grid container spacing={4}>
-          <Grid item xs={12}>
-            {renderCard("Sales Report", [
-              ["Total Sales Today", `${sales.total_sales_today ?? 0} PESOS`],
-              ["Total Sales Week", `${sales.total_sales_week ?? 0} PESOS`],
-              ["Total Sales Month", `${sales.total_sales_month ?? 0} PESOS`],
-              ["Number of Orders Today", sales.number_of_orders_today ?? 0],
-              ["Number of Orders This Week", sales.number_of_orders_week ?? 0],
-            ])}
-          </Grid>
-
-          <Grid item xs={12}>
-            {renderCard("Inventory Report", [
-              ["Total Products", inventory.total_products ?? 0],
-              ["Out of Stocks", inventory.out_of_stocks ?? 0],
-              ["Low Stock Products", inventory.low_stock_product ?? 0],
-              ["Most Stocked Product", inventory.most_stocked_product ?? "N/A"],
-            ])}
-          </Grid>
-
-          <Grid item xs={12}>
-            {renderCard("Transaction Report", [
-              ["Total Transactions", transactions.total_transactions ?? 0],
-              ["Pending Transactions", transactions.pending_transaction ?? 0],
-              ["Completed Transactions", transactions.completed_transaction ?? 0],
-              ["Refunded", transactions.refunded_transaction ?? 0],
-            ])}
-          </Grid>
-        </Grid>
-      </Box>
-
-      <Box mt={4}>
-        <Button
-          variant="contained"
-          color="error"
-          fullWidth
-          onClick={handleLogout}
-          sx={{ py: 1.5, fontWeight: 600, fontSize: "1rem", mb: 2 }}
-        >
+    <Box sx={{ padding: 4 }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Typography variant="h4">Welcome Admin, {user}</Typography>
+        <Button variant="contained" color="secondary" onClick={handleLogout}>
           Logout
         </Button>
-
-        <Button
-          variant="outlined"
-          color="primary"
-          fullWidth
-          onClick={handlePrint}
-          sx={{ py: 1.5, fontWeight: 600, fontSize: "1rem" }}
-        >
-          Print Reports
-        </Button>
       </Box>
+
+      <Divider sx={{ mb: 3 }} />
+
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={4}>
+          <Card sx={{ boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6">Sales Report</Typography>
+              <Typography>Total Sales Today: ₱{sales.total_sales_today || 0}</Typography>
+              <Typography>This Week: ₱{sales.total_sales_week || 0}</Typography>
+              <Typography>This Month: ₱{sales.total_sales_month || 0}</Typography>
+              <Typography>Orders Today: {sales.number_of_orders_today || 0}</Typography>
+              <Typography>Orders This Week: {sales.number_of_orders_week || 0}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Card sx={{ boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6">Inventory Report</Typography>
+              <Typography>Total Products: {inventory.total_products || 0}</Typography>
+              <Typography>Out of Stocks: {inventory.out_of_stocks || 0}</Typography>
+              <Typography>Low Stock: {inventory.low_stock_product || 0}</Typography>
+              <Typography>Most Stocked: {inventory.most_stocked_product || "N/A"}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Card sx={{ boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6">Transaction Report</Typography>
+              <Typography>Total Transactions: {transactions.total_transactions || 0}</Typography>
+              <Typography>Pending: {transactions.pending_transaction || 0}</Typography>
+              <Typography>Completed: {transactions.completed_transaction || 0}</Typography>
+              <Typography>Refunded: {transactions.refunded_transaction || 0}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     </Box>
   );
 };

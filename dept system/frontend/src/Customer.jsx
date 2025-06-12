@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -19,6 +20,35 @@ const products = new Array(8).fill({
 });
 
 const Customer = () => {
+  const navigate = useNavigate();
+  const [user, setUser] = useState("");
+
+  useEffect(() => {
+  const username = localStorage.getItem("username");
+  const role = localStorage.getItem("role");
+
+  if (!username || !role || role.toLowerCase() !== "customer") {
+    // Not logged in or not a customer
+    localStorage.clear(); // Optional: clear out bad session data
+    navigate("/login");
+  } else {
+    setUser(username);
+  }
+}, [navigate]);
+
+  const handleSidebarClick = (text) => {
+    if (text === "Logout") {
+      localStorage.clear();
+      navigate("/login");
+    } else if (text === "Menu / Products") {
+      navigate("/customer");
+    } else if (text === "Cart") {
+      navigate("/customer/cart");
+    } else if (text === "Order") {
+      navigate("/customer/orders");
+    }
+  };
+
   return (
     <Box display="flex" height="100vh">
       {/* Sidebar */}
@@ -39,6 +69,7 @@ const Customer = () => {
             <ListItem
               button
               key={index}
+              onClick={() => handleSidebarClick(text)}
               sx={{
                 color: "#fff",
                 borderRadius: "10px",
@@ -49,7 +80,9 @@ const Customer = () => {
             >
               <ListItemText
                 primary={text}
-                primaryTypographyProps={{ fontWeight: text === "Menu / Products" ? "bold" : "normal" }}
+                primaryTypographyProps={{
+                  fontWeight: text === "Menu / Products" ? "bold" : "normal",
+                }}
               />
             </ListItem>
           ))}
@@ -59,7 +92,7 @@ const Customer = () => {
       {/* Main content */}
       <Box flex={1} p={3}>
         <Typography variant="h6" mb={2}>
-          Welcome, Hello Customer!
+          Welcome, {user ? `Hello ${user}!` : "Customer!"}
         </Typography>
 
         {/* Product Section */}

@@ -21,6 +21,7 @@ const Register = () => {
     lastName: "",
     address: "",
     phone: "",
+    email: "", // <-- Add this line
   });
   const navigate = useNavigate();
 
@@ -132,6 +133,18 @@ const Register = () => {
             },
           }}
         />
+        <TextField
+  label="Email"
+  name="email"
+  fullWidth
+  margin="dense"
+  size="small"
+  value={form.email}
+  onChange={handleChange}
+  InputProps={{
+    style: { backgroundColor: "#ffffff" },
+  }}
+/>
 
         {form.role === "customer" && (
           <>

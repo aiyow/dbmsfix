@@ -17,46 +17,61 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
 const Login = () => {
-  const [role, setRole] = useState("Employee");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-    if (!username || !password) {
-      alert("Please fill in all fields");
+  if (!username || !password) {
+    alert("Please fill in all fields");
+    return;
+  }
+
+  try {
+    const response = await axios.post("http://localhost:5000/login", {
+      username,
+      password,
+    });
+
+    const { token, role: userRole, username: userName } = response.data;
+
+    if (!token || !userRole) {
+      alert("Invalid login response. Please try again.");
       return;
     }
 
-    try {
-      const response = await axios.post(
-        "http://localhost:5000/login",
-        { username, password, role }, // Send role too
-        { headers: { "Content-Type": "application/json" } }
-      );
+    // Save session
+    localStorage.setItem("token", token);
+    localStorage.setItem("username", userName);
+    localStorage.setItem("role", userRole);
 
-      const { token, role: userRole, username: userName } = response.data;
-      localStorage.setItem("token", token);
-      localStorage.setItem("username", userName);
-      localStorage.setItem("role", userRole);
+    const normalizedRole = userRole.trim().toLowerCase();
 
-      const normalizedRole = userRole?.trim();
-
-if (normalizedRole === "admin" || normalizedRole === "manager") {
-  navigate("/Admin");
-} else if (normalizedRole === "employee" || normalizedRole === "staff") {
-  navigate("/staff");
-} else if (normalizedRole === "customer") {
-  navigate("/customer");
-} else {
-  alert("Unrecognized role: " + userRole);
-}
-    } catch (error) {
-      alert(error.response?.data?.message || "Login failed");
+    // Role-based redirection
+    switch (normalizedRole) {
+      case "admin":
+      case "manager":
+        navigate("/admin");
+        break;
+      case "staff":
+      case "employee":
+        navigate("/staff");
+        break;
+      case "customer":
+        navigate("/customer");
+        break;
+      default:
+        alert("Unrecognized role: " + userRole);
+        localStorage.clear(); // clear to avoid bad session
+        break;
     }
-  };
-
+  } catch (error) {
+    alert(error.response?.data?.message || "Login failed");
+    console.error("Login error:", error);
+  }
+};
+// -------------------------THIS IS FOR CSS STYLING
   return (
     <Box
       sx={{
@@ -81,19 +96,6 @@ if (normalizedRole === "admin" || normalizedRole === "manager") {
           SIGN IN
         </Typography>
 
-        <FormControl fullWidth sx={{ marginBottom: 2 }} size="small">
-          <InputLabel>Roles</InputLabel>
-          <Select
-            value={role}
-            label="Roles"
-            onChange={(e) => setRole(e.target.value)}
-          >
-            <MenuItem value="Employee">Employee</MenuItem>
-            <MenuItem value="Manager">Manager</MenuItem>
-            <MenuItem value="Customer">Customer</MenuItem>
-          </Select>
-        </FormControl>
-
         <TextField
           label="Email/Username"
           fullWidth
@@ -112,10 +114,7 @@ if (normalizedRole === "admin" || normalizedRole === "manager") {
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  edge="end"
-                >
+                <IconButton onClick={() => setShowPassword((prev) => !prev)} edge="end">
                   {showPassword ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
               </InputAdornment>
