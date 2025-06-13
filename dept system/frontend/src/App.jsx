@@ -2,9 +2,10 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-d
 import Register from "./Register";
 import Login from "./Login";
 import Admin from "./Admin";
-import Staff from "./Staff";
+import Staff from "./staff";
 import ProductManagement from "./ProductManagement";
 import Customer from "./Customer";
+import Customercart from "./Customercart"; // Make sure this matches the filename (Customercart.jsx)
 
 // Role-based wrappers
 const RequireRole = ({ allowedRoles, children }) => {
@@ -33,14 +34,21 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/Login" replace />} />
-        <Route path="/Register" element={<Register />} />
-        <Route path="/Login" element={<Login />} />
-
-        <Route path="/Admin" element={<RequireAdmin><Admin /></RequireAdmin> }/>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
 
         <Route
-          path="/Staff"
+          path="/admin"
+          element={
+            <RequireAdmin>
+              <Admin />
+            </RequireAdmin>
+          }
+        />
+
+        <Route
+          path="/staff"
           element={
             <RequireStaff>
               <Staff />
@@ -49,10 +57,19 @@ function App() {
         />
 
         <Route
-          path="/Customer"
+          path="/customer"
           element={
             <RequireCustomer>
               <Customer />
+            </RequireCustomer>
+          }
+        />
+
+        <Route
+          path="/customer/cart"
+          element={
+            <RequireCustomer>
+              <Customercart />
             </RequireCustomer>
           }
         />
@@ -66,7 +83,7 @@ function App() {
           }
         />
 
-        <Route path="*" element={<Navigate to="/Login" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   );

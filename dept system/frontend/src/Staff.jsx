@@ -22,8 +22,9 @@ const Staff = () => {
       setUser(storedUser);
       setRole(storedRole);
 
-      if (storedRole !== "Staff") {
-        navigate("/compas");
+      const normalizedRole = storedRole.trim().toLowerCase();
+      if (normalizedRole !== "staff" && normalizedRole !== "employee") {
+        navigate("/login");
       }
     } else {
       navigate("/login");

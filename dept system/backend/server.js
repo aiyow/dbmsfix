@@ -34,6 +34,23 @@ db.getConnection((err) => {
   }
 });
 
+// Get customer info by username
+app.get("/api/customers/:username", (req, res) => {
+  const { username } = req.params;
+  const sql = "SELECT first_name FROM customers WHERE username = ?";
+  db.query(sql, [username], (err, results) => {
+    if (err) {
+      console.error("Error fetching customer data:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+    res.json(results[0]); // returns { first_name: "Juan" }
+  });
+});
+
+
 // Register
 app.post("/register", async (req, res) => {
   console.log("Incoming registration data:", req.body);

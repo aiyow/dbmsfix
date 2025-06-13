@@ -47,7 +47,10 @@ const Login = () => {
     localStorage.setItem("role", userRole);
 
     const normalizedRole = userRole.trim().toLowerCase();
-
+    console.log("Token:", token);
+    console.log("User Role (raw):", userRole);
+    console.log("User Role (normalized):", normalizedRole);
+    console.log("Username:", userName);
     // Role-based redirection
     switch (normalizedRole) {
       case "admin":
